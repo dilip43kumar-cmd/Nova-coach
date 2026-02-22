@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NOVA">
+<title>NOVA – Vitality Coach</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --nova:#6c4fcf;--noval:#9b7fe8;--novap:#f0ecfd;
+  --sage:#4a7c59;--sagel:#6a9e77;--sagep:#e8f0eb;--sagem:#c5daca;
+  --cream:#f5f2ed;--white:#fdfcfa;--dark:#18221e;--mid:#4a5e50;--soft:#8a9e90;
+  --acc:#c8753a;--sha:0 2px 14px rgba(24,34,30,.09);--r:16px;
+}
+body{font-family:'Nunito',sans-serif;background:var(--dark);}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;z-index:9999;background:var(--dark);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .5s;}
+#splash.gone{opacity:0;pointer-events:none;}
+.sp-orb{width:88px;height:88px;border-radius:24px;background:linear-gradient(135deg,var(--nova),var(--noval));display:flex;align-items:center;justify-content:center;box-shadow:0 0 48px rgba(108,79,207,.5);animation:popIn .7s cubic-bezier(.34,1.56,.64,1) .3s both;}
+@keyframes popIn{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+.sp-orb svg{width:48px;height:48px;}
+.sp-name{font-family:'Playfair Display',serif;color:#fff;font-size:32px;letter-spacing:3px;animation:up .5s ease .9s both;}
+.sp-sub{color:rgba(255,255,255,.35);font-size:11px;letter-spacing:1.5px;text-align:center;animation:up .5s ease 1.1s both;}
+.sp-by{color:rgba(255,255,255,.18);font-size:10px;margin-top:2px;animation:up .4s ease 1.3s both;}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* BOTTOM NAV */
+#nav{position:fixed;bottom:0;left:0;right:0;z-index:500;display:none;padding:7px 0 max(env(safe-area-inset-bottom),18px);}
+#nav.show{display:flex;}
+#nav.dk{background:rgba(18,26,20,.97);border-top:1px solid rgba(255,255,255,.08);}
+#nav.lt{background:var(--white);border-top:1px solid var(--sagem);}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;background:none;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-size:9px;font-weight:700;letter-spacing:.2px;transition:color .18s;}
+#nav.dk .nb{color:rgba(255,255,255,.28);}
+#nav.dk .nb.on{color:var(--noval);}
+#nav.lt .nb{color:var(--soft);}
+#nav.lt .nb.on{color:var(--nova);}
+.nb svg{width:20px;height:20px;}
+.nb-dot{width:4px;height:4px;border-radius:50%;background:var(--nova);opacity:0;margin-top:1px;transition:opacity .2s;}
+.nb.on .nb-dot{opacity:1;}
+
+/* TABS */
+.tab{display:none;min-height:100vh;padding-bottom:80px;}
+.tab.on{display:block;}
+
+/* ── NOVA TAB (dark) ── */
+#t-nova{background:var(--dark);display:none;flex-direction:column;min-height:100vh;padding-bottom:80px;}
+#t-nova.on{display:flex;}
+
+.nova-hdr{padding:52px 18px 13px;display:flex;align-items:center;gap:11px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;}
+.nav-av{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--nova),var(--noval));display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#fff;box-shadow:0 0 18px rgba(108,79,207,.38);position:relative;flex-shrink:0;}
+.av-dot{position:absolute;bottom:-2px;right:-2px;width:9px;height:9px;border-radius:50%;background:#4caf50;border:2px solid var(--dark);animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(76,175,80,.4)}50%{box-shadow:0 0 0 5px transparent}}
+.nova-nm{font-family:'Playfair Display',serif;font-size:16px;color:#fff;}
+.nova-st{font-size:10px;color:rgba(255,255,255,.32);margin-top:1px;}
+
+.phase-bar{display:flex;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;}
+.ptab{flex:1;padding:10px 6px;background:none;border:none;font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;color:rgba(255,255,255,.28);cursor:pointer;transition:color .2s;border-bottom:2px solid transparent;margin-bottom:-1px;}
+.ptab.on{color:var(--noval);border-bottom-color:var(--nova);}
+
+/* Messages */
+.msgs{flex:1;overflow-y:auto;padding:12px 16px 8px;display:flex;flex-direction:column;gap:11px;}
+.msgs::-webkit-scrollbar{display:none;}
+.msg{display:flex;gap:9px;animation:msgIn .3s ease;}
+@keyframes msgIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.msg.u{flex-direction:row-reverse;}
+.mav{width:30px;height:30px;border-radius:50%;flex-shrink:0;align-self:flex-end;background:linear-gradient(135deg,var(--nova),var(--noval));display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:#fff;}
+.msg.u .mav{background:rgba(255,255,255,.09);}
+.mbody{max-width:82%;display:flex;flex-direction:column;gap:3px;}
+.msg.u .mbody{align-items:flex-end;}
+.bub{padding:11px 14px;border-radius:18px;font-size:13px;line-height:1.58;background:rgba(255,255,255,.07);color:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.08);}
+.msg.u .bub{background:var(--nova);color:#fff;border:none;}
+.mt{font-size:9px;color:rgba(255,255,255,.2);padding:0 3px;}
+.msg.u .mt{text-align:right;}
+.tdots{display:inline-flex;gap:4px;align-items:center;padding:1px 0;}
+.tdots span{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.38);animation:td 1.2s ease-in-out infinite;}
+.tdots span:nth-child(2){animation-delay:.2s;}
+.tdots span:nth-child(3){animation-delay:.4s;}
+@keyframes td{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
+
+/* Chips */
+.chips{padding:8px 16px;display:flex;gap:7px;overflow-x:auto;flex-shrink:0;}
+.chips::-webkit-scrollbar{display:none;}
+.chip{flex-shrink:0;padding:7px 13px;border-radius:18px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.05);color:rgba(255,255,255,.68);font-family:'Nunito',sans-serif;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.chip:active{background:rgba(108,79,207,.3);}
+
+/* API strip */
+.api-row{margin:0 16px 8px;padding:10px 12px;border-radius:11px;background:rgba(200,117,58,.1);border:1px solid rgba(200,117,58,.2);display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.api-row input{flex:1;padding:6px 10px;border-radius:8px;border:1.5px solid rgba(200,117,58,.3);background:rgba(255,255,255,.05);font-family:'Nunito',sans-serif;font-size:12px;color:#fff;outline:none;}
+.api-row input::placeholder{color:rgba(255,255,255,.28);}
+.api-row button{background:var(--acc);color:#fff;border:none;border-radius:7px;padding:6px 11px;font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;}
+#apiOk{font-size:10px;color:rgba(100,220,120,.8);display:none;white-space:nowrap;}
+
+/* Chat bar */
+.chat-bar{display:flex;gap:8px;align-items:flex-end;padding:9px 16px 11px;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0;}
+.cf{flex:1;padding:10px 14px;border-radius:20px;border:1.5px solid rgba(255,255,255,.11);background:rgba(255,255,255,.06);font-family:'Nunito',sans-serif;font-size:13px;color:#fff;outline:none;resize:none;max-height:88px;}
+.cf:focus{border-color:var(--nova);}
+.cf::placeholder{color:rgba(255,255,255,.28);}
+.csend{width:40px;height:40px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--nova),var(--noval));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(108,79,207,.38);}
+.csend svg{width:15px;height:15px;}
+
+/* Data panel */
+.data-panel{flex:1;overflow-y:auto;padding:14px 16px 10px;}
+.dp-head{font-size:10px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.28);text-transform:uppercase;margin-bottom:9px;}
+.dp-row{display:flex;gap:8px;margin-bottom:8px;}
+.dp-g{flex:1;}
+.dp-lbl{font-size:9px;font-weight:700;color:rgba(255,255,255,.32);letter-spacing:.3px;margin-bottom:3px;}
+.dp-auto{color:rgba(90,220,120,.55);}
+.dpf{width:100%;padding:9px 11px;border-radius:10px;border:1.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);font-family:'Nunito',sans-serif;font-size:13px;color:#fff;outline:none;}
+.dpf:focus{border-color:var(--nova);}
+.dpf::placeholder{color:rgba(255,255,255,.22);}
+.dpf.af{border-color:rgba(90,220,120,.45);background:rgba(74,124,89,.1);}
+.go-btn{width:100%;padding:13px;margin-top:8px;border-radius:13px;border:none;background:linear-gradient(135deg,var(--nova),var(--noval));color:#fff;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(108,79,207,.38);}
+
+/* ── LIGHT TABS ── */
+.lt{background:var(--cream);padding:0 16px 20px;}
+.lt-hdr{background:var(--white);padding:52px 18px 13px;margin:0 -16px 18px;border-bottom:1px solid var(--sagem);display:flex;align-items:center;justify-content:space-between;}
+.lt-l{display:flex;align-items:center;gap:9px;}
+.lt-av{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--nova),var(--noval));display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:#fff;}
+.lt-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--dark);}
+.lt-date{font-size:11px;color:var(--soft);}
+.slbl{font-size:10px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--soft);margin-bottom:8px;}
+.card{background:var(--white);border-radius:var(--r);padding:15px;margin-bottom:12px;box-shadow:var(--sha);}
+
+/* Greeting */
+.greet{background:var(--dark);border-radius:var(--r);padding:19px;margin-bottom:13px;position:relative;overflow:hidden;}
+.greet::before{content:'';position:absolute;top:-40px;right:-40px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,var(--nova),transparent 70%);opacity:.15;}
+.g-hi{font-size:12px;color:rgba(255,255,255,.38);margin-bottom:3px;}
+.g-msg{font-family:'Playfair Display',serif;font-size:18px;color:#fff;line-height:1.35;}
+.g-sub{font-size:11px;color:rgba(255,255,255,.42);margin-top:5px;}
+.rbadge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:14px;margin-top:9px;font-size:11px;font-weight:700;}
+.rbadge.g{background:rgba(46,125,50,.2);color:#81c784;}
+.rbadge.y{background:rgba(212,160,23,.2);color:#ffd54f;}
+.rbadge.r{background:rgba(192,57,43,.2);color:#ef9a9a;}
+.rdot{width:7px;height:7px;border-radius:50%;}
+.rbadge.g .rdot{background:#81c784;}.rbadge.y .rdot{background:#ffd54f;}.rbadge.r .rdot{background:#ef9a9a;}
+
+/* Weather */
+.wcrd{border-radius:var(--r);padding:15px 17px;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden;background:linear-gradient(135deg,#1a3a5c,#2d6a9f);}
+.wcrd::before{content:'';position:absolute;top:-30px;right:-30px;width:110px;height:110px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.12),transparent 70%);}
+.wl{display:flex;flex-direction:column;gap:2px;}
+.wloc{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:rgba(255,255,255,.55);margin-bottom:3px;}
+.wloc svg{width:10px;height:10px;}
+.wtemp{font-family:'Playfair Display',serif;font-size:34px;color:#fff;line-height:1;}
+.wdesc{font-size:12px;color:rgba(255,255,255,.8);font-weight:600;margin-top:2px;}
+.wfeels{font-size:10px;color:rgba(255,255,255,.45);}
+.wr{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+.wicon{font-size:36px;}
+.wst{font-size:10px;color:rgba(255,255,255,.55);}
+
+/* Metrics */
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:13px;}
+.mc{background:var(--white);border-radius:13px;padding:13px;box-shadow:var(--sha);}
+.mc-ic{font-size:17px;margin-bottom:5px;}
+.mc-v{font-family:'Playfair Display',serif;font-size:22px;color:var(--dark);}
+.mc-u{font-size:11px;color:var(--soft);}
+.mc-l{font-size:10px;color:var(--soft);margin-top:1px;font-weight:600;}
+.mc-src{font-size:9px;margin-top:3px;padding:2px 6px;border-radius:5px;display:inline-block;background:var(--sagep);color:var(--sage);}
+
+/* Form bits */
+.irow{display:flex;gap:8px;margin-bottom:8px;}
+.ig{flex:1;}
+.ilbl{font-size:10px;color:var(--soft);font-weight:700;margin-bottom:3px;}
+.ifield{width:100%;padding:9px 12px;border-radius:10px;border:1.5px solid var(--sagem);background:var(--cream);font-family:'Nunito',sans-serif;font-size:13px;color:var(--dark);outline:none;transition:border-color .2s;}
+.ifield:focus{border-color:var(--nova);}
+.ifield::placeholder{color:var(--soft);}
+.btn-p{background:linear-gradient(135deg,var(--nova),var(--noval));color:#fff;border:none;border-radius:12px;padding:12px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;width:100%;margin-top:4px;box-shadow:0 4px 13px rgba(108,79,207,.3);}
+.btn-s{background:var(--acc);color:#fff;border:none;border-radius:9px;padding:8px 13px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.banner{border-radius:13px;padding:12px 13px;margin-bottom:13px;display:flex;align-items:center;gap:10px;}
+.banner.pend{background:linear-gradient(135deg,#1c3a5e,#2d5a8e);}
+.banner.ok{background:linear-gradient(135deg,#1a4a2e,#2e7d52);}
+.banner h4{font-size:12px;font-weight:700;color:#fff;margin-bottom:2px;}
+.banner p{font-size:11px;color:rgba(255,255,255,.58);line-height:1.5;}
+
+/* Progress */
+.gcards{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:13px;}
+.gc{background:var(--white);border-radius:13px;padding:13px;box-shadow:var(--sha);}
+.gc-lbl{font-size:10px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--soft);margin-bottom:4px;}
+.gc-val{font-family:'Playfair Display',serif;font-size:21px;color:var(--dark);}
+.gc-sub{font-size:10px;color:var(--soft);margin-top:2px;}
+.gc-bar{height:5px;border-radius:3px;background:var(--sagep);margin-top:7px;overflow:hidden;}
+.gc-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--nova),var(--noval));transition:width .9s ease;}
+
+.badge-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:5px;margin-bottom:14px;}
+.badge-row::-webkit-scrollbar{display:none;}
+.bchip{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--white);border-radius:13px;padding:11px 12px;box-shadow:var(--sha);}
+.bchip.earned{border:1.5px solid var(--nova);background:var(--novap);}
+.bchip-ic{font-size:21px;}
+.bchip-l{font-size:9px;font-weight:700;color:var(--soft);text-align:center;}
+.bchip.earned .bchip-l{color:var(--nova);}
+
+.cwrap{width:100%;height:155px;margin:7px 0 3px;}
+canvas.lc{width:100%!important;height:155px!important;}
+
+.cal-drow{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:3px;}
+.cdh{font-size:9px;font-weight:700;color:var(--soft);text-align:center;}
+.cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cday{aspect-ratio:1;border-radius:7px;background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--soft);}
+.cday.today{border:2px solid var(--nova);color:var(--nova);}
+.cday.done{background:var(--nova);color:#fff;}
+.cday.rest{background:var(--sagep);}
+.cday.empty{opacity:0;}
+
+.dnut-wrap{display:flex;align-items:center;gap:13px;}
+.dl-item{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
+.dl-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+.dl-name{font-size:12px;font-weight:600;color:var(--dark);}
+.dl-pct{font-size:11px;color:var(--soft);margin-left:auto;}
+
+.meas-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.mcard{background:var(--cream);border-radius:11px;padding:11px;}
+.ml{font-size:10px;font-weight:700;color:var(--soft);letter-spacing:.4px;margin-bottom:3px;}
+.mv{font-family:'Playfair Display',serif;font-size:19px;color:var(--dark);}
+.medit{display:flex;gap:5px;margin-top:6px;}
+.mi{flex:1;padding:6px 8px;border-radius:7px;border:1.5px solid var(--sagem);background:var(--white);font-family:'Nunito',sans-serif;font-size:12px;color:var(--dark);outline:none;}
+.mi:focus{border-color:var(--nova);}
+.msave{background:var(--nova);color:#fff;border:none;border-radius:7px;padding:6px 9px;font-size:11px;font-weight:700;cursor:pointer;}
+
+/* Workout */
+.dtabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:13px;}
+.dtabs::-webkit-scrollbar{display:none;}
+.dtab{flex-shrink:0;padding:7px 12px;border-radius:15px;border:1.5px solid var(--sagem);background:var(--white);font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;color:var(--soft);cursor:pointer;transition:all .2s;}
+.dtab.on{background:var(--nova);color:#fff;border-color:var(--nova);}
+.wex{background:var(--white);border-radius:var(--r);padding:14px;margin-bottom:9px;box-shadow:var(--sha);}
+.wh{display:flex;align-items:center;gap:8px;margin-bottom:11px;}
+.wi{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.wi.s{background:#fff3e0;}.wi.c{background:#e8f5e9;}.wi.f{background:#e3f2fd;}
+.wtype{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--soft);}
+.wname{font-size:13px;font-weight:700;color:var(--dark);}
+.exlist{display:flex;flex-direction:column;gap:7px;}
+.exi{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--cream);border-radius:9px;}
+.exn{font-size:12px;font-weight:600;color:var(--dark);}
+.exd{font-size:11px;color:var(--soft);}
+.exck{width:22px;height:22px;border-radius:50%;border:2px solid var(--sagem);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+.exck.done{background:var(--nova);border-color:var(--nova);}
+.exck svg{display:none;width:11px;height:11px;}
+.exck.done svg{display:block;}
+
+/* Setup */
+.sstep{background:var(--white);border-radius:13px;padding:14px;margin-bottom:10px;box-shadow:var(--sha);display:flex;gap:11px;}
+.snum{width:29px;height:29px;border-radius:50%;background:var(--nova);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.sbody h4{font-size:13px;font-weight:700;color:var(--dark);margin-bottom:4px;}
+.sbody p{font-size:12px;color:var(--mid);line-height:1.6;margin-bottom:4px;}
+.sbody code{background:var(--novap);color:var(--nova);padding:2px 5px;border-radius:4px;font-size:11px;}
+.ubox{background:var(--dark);border-radius:9px;padding:10px 12px;margin:8px 0;word-break:break-all;}
+.cpbtn{background:var(--nova);color:#fff;border:none;border-radius:7px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;margin-top:6px;}
+.tip-box{background:var(--sagep);border-radius:12px;padding:12px 14px;margin-top:4px;}
+.tip-box p{font-size:12px;color:var(--sage);line-height:1.6;}
+
+/* Log Modal */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.48);z-index:9000;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s;}
+.modal-ov.open{opacity:1;pointer-events:all;}
+.modal{background:var(--white);border-radius:22px 22px 0 0;padding:20px 18px 38px;width:100%;transform:translateY(100%);transition:transform .32s cubic-bezier(.34,1.1,.64,1);}
+.modal-ov.open .modal{transform:translateY(0);}
+.modal h3{font-family:'Playfair Display',serif;font-size:18px;margin-bottom:13px;}
+.mx{float:right;background:var(--cream);border:none;border-radius:50%;width:27px;height:27px;font-size:15px;cursor:pointer;}
+.etgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:13px;}
+.etb{padding:9px 4px;border-radius:10px;border:1.5px solid var(--sagem);background:var(--cream);font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;color:var(--mid);cursor:pointer;text-align:center;transition:all .2s;}
+.etb.sel{background:var(--nova);color:#fff;border-color:var(--nova);}
+.lnote{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--sagem);background:var(--cream);font-family:'Nunito',sans-serif;font-size:13px;color:var(--dark);outline:none;resize:none;margin-bottom:10px;}
+.lnote:focus{border-color:var(--nova);}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="sp-orb">
+    <svg viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="14" r="6" fill="white" opacity=".9"/>
+      <path d="M14 34c0-5.523 4.477-10 10-10s10 4.477 10 10" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M8 28l6-4M40 28l-6-4" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div class="sp-name">NOVA</div>
+  <div class="sp-sub">NURTURING OPTIMAL VITALITY ADVISOR</div>
+  <div class="sp-by">Designed by Dilip</div>
+</div>
+
+<!-- LOG MODAL -->
+<div class="modal-ov" id="logModal">
+  <div class="modal">
+    <button class="mx" onclick="closeLog()">✕</button>
+    <h3>Log Workout</h3>
+    <div class="slbl" style="color:var(--soft)">TYPE</div>
+    <div class="etgrid">
+      <button class="etb" onclick="selType(this,'strength')">💪 Strength</button>
+      <button class="etb" onclick="selType(this,'cardio')">🚶 Cardio</button>
+      <button class="etb" onclick="selType(this,'flexibility')">🧘 Flex</button>
+      <button class="etb" onclick="selType(this,'walk')">👟 Walk</button>
+      <button class="etb" onclick="selType(this,'swim')">🏊 Swim</button>
+      <button class="etb" onclick="selType(this,'cycle')">🚴 Cycle</button>
+    </div>
+    <textarea class="lnote" id="lNote" rows="2" placeholder="Quick note (optional)"></textarea>
+    <input class="ifield" id="lDur" type="number" placeholder="Duration (minutes)" style="margin-bottom:12px;">
+    <button class="btn-p" onclick="saveLog()">✦ Save Workout</button>
+  </div>
+</div>
+
+<!-- ══ NOVA TAB ══ -->
+<div id="t-nova" class="on">
+  <div class="nova-hdr">
+    <div class="nav-av">N<div class="av-dot"></div></div>
+    <div><div class="nova-nm">NOVA</div><div class="nova-st" id="novaSt">● Online · Ready to coach you</div></div>
+  </div>
+  <div class="phase-bar">
+    <button class="ptab on" id="pt-chat" onclick="setPhase('chat')">💬 Coach Chat</button>
+    <button class="ptab" id="pt-data" onclick="setPhase('data')">📊 Enter My Data</button>
+  </div>
+
+  <!-- CHAT PHASE -->
+  <div id="ph-chat" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+    <div class="msgs" id="msgs"></div>
+    <div class="chips" id="chips"></div>
+    <div class="api-row">
+      <input type="password" id="apiIn" placeholder="Paste API key (sk-ant-…) to activate NOVA">
+      <button onclick="saveKey()">Connect</button>
+      <span id="apiOk">✓ On</span>
+    </div>
+    <div class="chat-bar">
+      <textarea class="cf" id="cf" rows="1" placeholder="Ask NOVA anything…" onkeydown="ck(event)" oninput="ar(this)"></textarea>
+      <button class="csend" onclick="send()"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+    </div>
+  </div>
+
+  <!-- DATA PHASE -->
+  <div id="ph-data" style="display:none;flex:1;overflow-y:auto;">
+    <div class="data-panel">
+      <div class="dp-head">⌚ WHOOP — enter 3 numbers</div>
+      <div class="dp-row"><div class="dp-g"><div class="dp-lbl">RECOVERY %</div><input class="dpf" id="d-rec" type="number" placeholder="72" min="0" max="100"></div><div class="dp-g"><div class="dp-lbl">STRAIN</div><input class="dpf" id="d-str" type="number" placeholder="9.4" step=".1"></div></div>
+      <div class="dp-row"><div class="dp-g"><div class="dp-lbl">SLEEP %</div><input class="dpf" id="d-wsl" type="number" placeholder="84"></div><div class="dp-g"><div class="dp-lbl">WEIGHT kg</div><input class="dpf" id="d-wt" type="number" placeholder="82.5" step=".1"></div></div>
+      <div class="dp-head" style="margin-top:12px;">🍎 APPLE HEALTH <span class="dp-auto">auto-loads via Shortcut</span></div>
+      <div class="dp-row"><div class="dp-g"><div class="dp-lbl">HRV ms <span class="dp-auto">AUTO</span></div><input class="dpf" id="d-hrv" type="number" placeholder="45"></div><div class="dp-g"><div class="dp-lbl">STEPS <span class="dp-auto">AUTO</span></div><input class="dpf" id="d-stp" type="number" placeholder="8200"></div></div>
+      <div class="dp-row"><div class="dp-g"><div class="dp-lbl">RHR bpm <span class="dp-auto">AUTO</span></div><input class="dpf" id="d-rhr" type="number" placeholder="58"></div><div class="dp-g"><div class="dp-lbl">SLEEP hrs <span class="dp-auto">AUTO</span></div><input class="dpf" id="d-slp" type="number" placeholder="7.2" step=".1"></div></div>
+      <button class="go-btn" onclick="submitData()">✦ Get My Daily Plan from NOVA</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD TAB ══ -->
+<div id="t-dash" class="tab lt">
+  <div class="lt-hdr"><div class="lt-l"><div class="lt-av">N</div><div class="lt-title">Dashboard</div></div><div class="lt-date" id="hdrDate"></div></div>
+  <div class="greet"><div class="g-hi" id="gHi">Good morning, Dilip 👋</div><div class="g-msg" id="gMsg">Ready for today?</div><div class="g-sub" id="gSub">Go to NOVA tab · enter data · get your plan</div><div class="rbadge y" id="rbadge"><div class="rdot"></div><span id="rbtxt">Awaiting WHOOP data</span></div></div>
+  <div class="wcrd" id="wcrd"><div class="wl"><div class="wloc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span id="wLoc">Detecting…</span></div><div class="wtemp" id="wTemp">—°</div><div class="wdesc" id="wDesc">Fetching weather…</div><div class="wfeels" id="wFeels"></div></div><div class="wr"><div class="wicon" id="wIcon">🌤️</div><div class="wst" id="wHum">—</div><div class="wst" id="wWnd">—</div><div class="wst" id="wUV">UV —</div></div></div>
+  <div class="banner pend" id="scBanner"><div style="font-size:20px;flex-shrink:0">⚡</div><div><h4>Shortcut Not Set Up</h4><p>Tap the <strong>Setup</strong> tab for a step-by-step guide to auto-load Apple Health.</p></div></div>
+  <div class="slbl">APPLE HEALTH</div>
+  <div class="mgrid">
+    <div class="mc"><div class="mc-ic">💓</div><div class="mc-v" id="m-hrv">—</div><div class="mc-u">ms HRV</div><div class="mc-l">Variability</div><div class="mc-src" id="s-hrv">awaiting</div></div>
+    <div class="mc"><div class="mc-ic">🫀</div><div class="mc-v" id="m-rhr">—</div><div class="mc-u">bpm RHR</div><div class="mc-l">Resting Heart Rate</div><div class="mc-src" id="s-rhr">awaiting</div></div>
+    <div class="mc"><div class="mc-ic">🌙</div><div class="mc-v" id="m-slp">—</div><div class="mc-u">hours</div><div class="mc-l">Sleep Duration</div><div class="mc-src" id="s-slp">awaiting</div></div>
+    <div class="mc"><div class="mc-ic">👟</div><div class="mc-v" id="m-stp">—</div><div class="mc-u">steps</div><div class="mc-l">Yesterday</div><div class="mc-src" id="s-stp">awaiting</div></div>
+  </div>
+</div>
+
+<!-- ══ PROGRESS TAB ══ -->
+<div id="t-prog" class="tab lt">
+  <div class="lt-hdr"><div class="lt-l"><div class="lt-av">N</div><div class="lt-title">Progress</div></div></div>
+  <div class="slbl">MY GOALS</div><div class="gcards" id="gcards"></div>
+  <div class="slbl">MILESTONES</div><div class="badge-row" id="badges"></div>
+  <div class="slbl">WEIGHT CHART</div>
+  <div class="card" style="padding:13px 9px 10px;">
+    <div class="cwrap"><canvas id="wChart" class="lc"></canvas></div>
+    <div style="display:flex;gap:8px;margin-top:8px;"><input class="ifield" id="wlv" type="number" placeholder="Log weight kg" step=".1" style="font-size:12px;padding:7px 10px;"><button class="btn-s" onclick="logW()">Add</button></div>
+  </div>
+  <div class="slbl">WORKOUT CALENDAR</div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;"><button onclick="calP()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--soft);">‹</button><div style="font-family:'Playfair Display',serif;font-size:14px;" id="calT"></div><button onclick="calN()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--soft);">›</button></div>
+    <div class="cal-drow"><div class="cdh">M</div><div class="cdh">T</div><div class="cdh">W</div><div class="cdh">T</div><div class="cdh">F</div><div class="cdh">S</div><div class="cdh">S</div></div>
+    <div class="cgrid" id="calG"></div>
+    <button class="btn-p" style="margin-top:11px;" onclick="openLog()">+ Log Today's Workout</button>
+  </div>
+  <div class="slbl">EXERCISE BREAKDOWN</div>
+  <div class="card"><div class="dnut-wrap"><canvas id="dnut" width="110" height="110" style="flex-shrink:0;"></canvas><div style="flex:1;" id="dnutL"></div></div></div>
+  <div class="slbl">BODY MEASUREMENTS</div>
+  <div class="card"><div class="meas-grid" id="measG"></div></div>
+</div>
+
+<!-- ══ PLAN TAB ══ -->
+<div id="t-plan" class="tab lt">
+  <div class="lt-hdr"><div class="lt-l"><div class="lt-av">N</div><div class="lt-title">Daily Plan</div></div></div>
+  <div class="dtabs" id="dtabs"></div>
+  <div class="wex"><div class="wh"><div class="wi s">🏋️</div><div><div class="wtype">Strength · 15 min</div><div class="wname">Functional</div></div></div><div class="exlist" id="SL"></div></div>
+  <div class="wex"><div class="wh"><div class="wi c">🚶</div><div><div class="wtype">Cardio · 20 min</div><div class="wname">Low-Impact</div></div></div><div class="exlist" id="CL"></div></div>
+  <div class="wex"><div class="wh"><div class="wi f">🧘</div><div><div class="wtype">Flexibility · 10 min</div><div class="wname">Mobility</div></div></div><div class="exlist" id="FL"></div></div>
+  <button class="btn-p" style="margin-top:4px;" onclick="openLog()">+ Log This Workout</button>
+</div>
+
+<!-- ══ SETUP TAB ══ -->
+<div id="t-setup" class="tab lt">
+  <div class="lt-hdr"><div class="lt-l"><div class="lt-av">N</div><div class="lt-title">Setup</div></div></div>
+  <p style="font-size:12px;color:var(--mid);margin-bottom:16px;line-height:1.7;">Do this once (~10 min). After that, one tap every morning auto-loads your Apple Health data into NOVA.</p>
+  <div class="sstep"><div class="snum">1</div><div class="sbody"><h4>Open Shortcuts App</h4><p>Swipe down, search <code>Shortcuts</code>. Already on every iPhone — no download needed.</p></div></div>
+  <div class="sstep"><div class="snum">2</div><div class="sbody"><h4>Create a New Shortcut</h4><p>Tap <strong>+</strong> top right → <strong>Add Action</strong>.</p></div></div>
+  <div class="sstep"><div class="snum">3</div><div class="sbody"><h4>Add 4 Health Actions</h4><p>Search <code>Health</code> → choose <strong>Find Health Samples</strong> × 4 for: ① <code>Step Count</code> ② <code>HRV</code> ③ <code>Resting Heart Rate</code> ④ <code>Sleep Analysis</code>. Each: Sort = Most Recent, Limit = 1.</p></div></div>
+  <div class="sstep"><div class="snum">4</div><div class="sbody"><h4>Add "Open URL" Action</h4><p>Search <code>Open URL</code>. Build the URL with each Health result as a variable:</p><div class="ubox"><span style="font-family:monospace;font-size:10px;color:#81c784;">NOVA-v5.html?steps=</span><span style="font-family:monospace;font-size:10px;color:#ffd54f;">[StepCount]</span><span style="font-family:monospace;font-size:10px;color:#81c784;">&hrv=</span><span style="font-family:monospace;font-size:10px;color:#ffd54f;">[HRV]</span><span style="font-family:monospace;font-size:10px;color:#81c784;">&rhr=</span><span style="font-family:monospace;font-size:10px;color:#ffd54f;">[RestingHR]</span><span style="font-family:monospace;font-size:10px;color:#81c784;">&sleep=</span><span style="font-family:monospace;font-size:10px;color:#ffd54f;">[SleepHrs]</span></div><button class="cpbtn" onclick="cpURL()">📋 Copy URL</button></div></div>
+  <div class="sstep"><div class="snum">5</div><div class="sbody"><h4>Add to Home Screen</h4><p>Name it <strong>NOVA</strong> → Share → Add to Home Screen. Done! 🎉</p></div></div>
+  <div class="tip-box"><p><strong>💡 Tip:</strong> Never used Shortcuts? Show this screen at any Apple Store — free setup in 5 min.</p></div>
+  <div style="text-align:center;padding:22px 0 8px;"><div style="font-size:11px;color:var(--soft);">Designed with ❤️ by <strong style="color:var(--nova);">Dilip</strong></div><div style="font-size:10px;color:var(--sagem);margin-top:3px;">NOVA · Nurturing Optimal Vitality Advisor</div></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav id="nav">
+  <button class="nb on" id="nb-nova" onclick="goTab('nova')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M5 20c0-3.866 3.134-7 7-7s7 3.134 7 7"/></svg>NOVA<div class="nb-dot"></div></button>
+  <button class="nb" id="nb-dash" onclick="goTab('dash')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Dashboard<div class="nb-dot"></div></button>
+  <button class="nb" id="nb-prog" onclick="goTab('prog')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Progress<div class="nb-dot"></div></button>
+  <button class="nb" id="nb-plan" onclick="goTab('plan')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 4v16M18 4v16M6 12h12M3 8h3M18 8h3M3 16h3M18 16h3"/></svg>Plan<div class="nb-dot"></div></button>
+  <button class="nb" id="nb-setup" onclick="goTab('setup')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>Setup<div class="nb-dot"></div></button>
+</nav>
+
+<script>
+// ── STORAGE ──
+const DB={get(k){try{return JSON.parse(localStorage.getItem('nv_'+k));}catch{return null;}},set(k,v){try{localStorage.setItem('nv_'+k,JSON.stringify(v));}catch{}}};
+function initDB(){
+  if(!DB.get('g'))DB.set('g',{ws:85,wt:75,wc:85,ss:8000,wpw:4,waist:98,hip:105,chest:102});
+  if(!DB.get('wl'))DB.set('wl',genW());
+  if(!DB.get('wlog'))DB.set('wlog',genWlog());
+  if(!DB.get('eb'))DB.set('eb',{strength:12,cardio:18,flexibility:8,walk:10,swim:2,cycle:4});
+}
+function genW(){const a=[],n=new Date();let w=85;for(let i=29;i>=0;i--){const d=new Date(n);d.setDate(d.getDate()-i);w=+(w-(Math.random()*.3-.05)).toFixed(1);a.push({date:d.toISOString().slice(0,10),val:w});}return a;}
+function genWlog(){const o={},n=new Date(),t=['strength','cardio','flexibility','walk','mixed'];for(let i=30;i>=0;i--){if(Math.random()>.42){const d=new Date(n);d.setDate(d.getDate()-i);o[d.toISOString().slice(0,10)]={type:t[Math.floor(Math.random()*5)],dur:20+Math.floor(Math.random()*40)};}}return o;}
+
+// ── STATE ──
+const S={m:{},hist:[],key:'',logType:null,calY:new Date().getFullYear(),calM:new Date().getMonth()};
+const SYS=`You are NOVA (Nurturing Optimal Vitality Advisor), a warm caring AI coach for Dilip, a 60-year-old focused on weight loss, healthy ageing and staying active. Always address him as Dilip. Be warm, concise (under 120 words), personal. Never shame. Celebrate small wins. Coach not doctor. Zone 2=100–120bpm. WHOOP Green≥67%: moderate ok. Yellow 33–66%: gentle. Red<33%: rest. HRV drop=rest. Sleep<6h=lighter. RHR>100=see doctor. Steps>10k=celebrate!`;
+const PLANS={green:{s:[{n:'Resistance Band Rows',d:'3×12'},{n:'Sit-to-Stand Squats',d:'3×10'},{n:'Wall Push-Ups',d:'3×12'},{n:'Glute Bridges',d:'3×15'}],c:[{n:'Brisk Walk',d:'20 min 100–120bpm'},{n:'Side Shuffle',d:'2×3 min'}],f:[{n:'Hip Flexor Stretch',d:'30s each'},{n:'Hamstring Stretch',d:'30s each'},{n:"Child's Pose",d:'60s'},{n:'Chest Opener',d:'30s'}]},yellow:{s:[{n:'Wall Push-Ups',d:'2×10'},{n:'Seated Leg Extensions',d:'2×12'},{n:'Bird-Dog',d:'2×8 each'}],c:[{n:'Gentle Walk',d:'15 min easy'},{n:'March in Place',d:'2×2 min'}],f:[{n:'Neck Rolls',d:'5 each'},{n:'Shoulder Stretch',d:'30s each'},{n:'Cat-Cow',d:'10 cycles'},{n:'Ankle Circles',d:'10 each'}]},red:{s:[{n:'Arm Circles',d:'2×30s'},{n:'Seated Calf Raises',d:'15 reps'}],c:[{n:'Slow Walk',d:'10 min very easy'}],f:[{n:'Full-Body Stretch',d:'10 min'},{n:'4-7-8 Breathing',d:'5 cycles'},{n:'Balance Hold',d:'20s each'},{n:"Child's Pose",d:'2 min'}]}};
+const CHIPS=[{e:'🌅',t:'Good morning NOVA!'},{e:'💪',t:'What should I do today?'},{e:'📊',t:'Analyse my data'},{e:'😴',t:'My sleep was poor'},{e:'🏃',t:'Just finished a workout'},{e:'🤕',t:'My knees feel stiff'},{e:'⚖️',t:"How's my weight progress?"},{e:'🎯',t:'How close am I to my goal?'}];
+
+// ── BOOT ──
+window.addEventListener('load',()=>{
+  initDB(); urlParams();
+  setTimeout(()=>{
+    // Hide splash
+    document.getElementById('splash').classList.add('gone');
+    setTimeout(()=>document.getElementById('splash').style.display='none',520);
+    // Show nav
+    const nav=document.getElementById('nav');
+    nav.classList.add('show','dk');
+    // Init UI
+    const h=new Date().getHours();
+    document.getElementById('gHi').textContent=h<12?'Good morning, Dilip 👋':h<17?'Good afternoon, Dilip 👋':'Good evening, Dilip 👋';
+    document.getElementById('hdrDate').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    buildChips(); buildDayTabs(); buildPlan('yellow'); fetchWeather();
+    // NOVA greeting sequence
+    bootNOVA();
+  },1900);
+});
+
+// ── TAB SWITCHING — the only navigation function ──
+function goTab(name){
+  // Hide ALL tabs
+  document.getElementById('t-nova').classList.remove('on');
+  document.getElementById('t-nova').style.display='none';
+  ['dash','prog','plan','setup'].forEach(n=>{
+    const el=document.getElementById('t-'+n);
+    if(el){el.classList.remove('on');el.style.display='none';}
+  });
+  // Show target
+  const target=document.getElementById('t-'+name);
+  if(target){
+    target.classList.add('on');
+    target.style.display=name==='nova'?'flex':'block';
+  }
+  // Nav buttons
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  const btn=document.getElementById('nb-'+name);
+  if(btn)btn.classList.add('on');
+  // Nav theme
+  const nav=document.getElementById('nav');
+  nav.className='nav show '+(name==='nova'?'dk':'lt');
+  // Render charts when visiting progress
+  if(name==='prog'){renderProg();setTimeout(()=>{drawChart();renderDonut();},150);}
+  window.scrollTo(0,0);
+}
+
+// ── NOVA BOOT SEQUENCE ──
+async function bootNOVA(){
+  buildChips();
+  const h=new Date().getHours();
+  const greet=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  const g=DB.get('g'), wlog=DB.get('wlog');
+  const streak=calcStreak(wlog);
+  const lost=+(g.ws-g.wc).toFixed(1);
+  const seq=[
+    `${greet}, Dilip! ✨ I'm NOVA — your personal vitality coach. I'm here every morning to guide your day.`,
+    streak>0?`🔥 You're on a ${streak}-day streak — brilliant consistency, Dilip!`:'Let\'s build a workout streak starting today, Dilip! Every day counts. 💪',
+    lost>0?`⚖️ You've lost ${lost}kg so far — ${+(g.wc-g.wt).toFixed(1)}kg to go. Keep it up!`:'Your weight journey starts now. Small steady steps win every time. 🎯',
+    'Tap <strong>📊 Enter My Data</strong> above to log today\'s numbers — or just ask me anything!'
+  ];
+  for(let i=0;i<seq.length;i++){
+    await showTyping(seq[i], i===0?500:850);
+    await wait(i===0?300:500);
+  }
+}
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+async function showTyping(text,ms){
+  const c=document.getElementById('msgs');
+  const id='td'+Date.now();
+  const d=document.createElement('div');d.className='msg';d.id=id;
+  d.innerHTML='<div class="mav">N</div><div class="mbody"><div class="bub"><div class="tdots"><span></span><span></span><span></span></div></div></div>';
+  c.appendChild(d);c.scrollTop=c.scrollHeight;
+  await wait(ms);
+  document.getElementById(id)?.remove();
+  addNova(text);
+}
+function addNova(t){
+  const c=document.getElementById('msgs'),time=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  const d=document.createElement('div');d.className='msg';
+  d.innerHTML=`<div class="mav">N</div><div class="mbody"><div class="bub">${t}</div><div class="mt">${time}</div></div>`;
+  c.appendChild(d);c.scrollTop=c.scrollHeight;
+  S.hist.push({role:'assistant',content:t.replace(/<[^>]*>/g,'')});
+}
+function addUser(t){
+  const c=document.getElementById('msgs'),time=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  const d=document.createElement('div');d.className='msg u';
+  d.innerHTML=`<div class="mav">D</div><div class="mbody"><div class="bub">${t}</div><div class="mt">${time}</div></div>`;
+  c.appendChild(d);c.scrollTop=c.scrollHeight;
+  S.hist.push({role:'user',content:t});
+}
+
+// ── PHASE SWITCH ──
+function setPhase(p){
+  document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('pt-'+p).classList.add('on');
+  document.getElementById('ph-chat').style.display=p==='chat'?'flex':'none';
+  document.getElementById('ph-data').style.display=p==='data'?'block':'none';
+}
+
+// ── CHIPS ──
+function buildChips(){document.getElementById('chips').innerHTML=CHIPS.map(c=>`<button class="chip" onclick="sendChip('${c.t.replace(/'/g,"\\'")}')"><span>${c.e}</span> ${c.t}</button>`).join('');}
+function sendChip(t){setPhase('chat');addUser(t);callNova(t);}
+
+// ── DATA SUBMIT ──
+function submitData(){
+  const rec=+document.getElementById('d-rec').value||0;
+  if(!rec){alert('Please enter your WHOOP Recovery % first.');return;}
+  const str=+document.getElementById('d-str').value||0;
+  const wsl=+document.getElementById('d-wsl').value||0;
+  const wt=+document.getElementById('d-wt').value||0;
+  const hrv=+document.getElementById('d-hrv').value||S.m.hrv||0;
+  const stp=+document.getElementById('d-stp').value||S.m.stp||0;
+  const rhr=+document.getElementById('d-rhr').value||S.m.rhr||0;
+  const slp=+document.getElementById('d-slp').value||S.m.slp||0;
+  Object.assign(S.m,{rec,str,wsl,wt,hrv,stp,rhr,slp});
+  if(wt){const g=DB.get('g');g.wc=wt;DB.set('g',g);const wl=DB.get('wl');const td=new Date().toISOString().slice(0,10);const i=wl.findIndex(x=>x.date===td);if(i>=0)wl[i].val=wt;else wl.push({date:td,val:wt});DB.set('wl',wl);}
+  updateDash(rec,rhr); setPhase('chat');
+  const msg=`Morning NOVA! My data: WHOOP Recovery ${rec}%${str?', Strain '+str:''}${wsl?', Sleep perf '+wsl+'%':''}.${hrv?' HRV:'+hrv+'ms.':''}${rhr?' RHR:'+rhr+'bpm.':''}${stp?' Steps:'+Number(stp).toLocaleString()+'.':''}${slp?' Sleep:'+slp+'h.':''}${wt?' Weight:'+wt+'kg.':''}`;
+  addUser(msg);callNova(msg);
+}
+function updateDash(rec,rhr){
+  let col='yellow';const b=document.getElementById('rbadge');
+  if(rec>=67){col='green';b.className='rbadge g';}else if(rec<33){col='red';b.className='rbadge r';}else b.className='rbadge y';
+  document.getElementById('rbtxt').textContent=`${rec}% · ${col==='green'?'Green — Ready!':col==='red'?'Red — Rest Day':'Yellow — Moderate'}`;
+  if(rhr>100){document.getElementById('gMsg').textContent='Please rest & see your doctor 🩺';}
+  else if(col==='green'){document.getElementById('gMsg').textContent='Great shape today! 💚';document.getElementById('gSub').textContent="High recovery — let's make it count, Dilip!";}
+  else if(col==='red'){document.getElementById('gMsg').textContent='Rest & restore today ❤️';document.getElementById('gSub').textContent='Gentle movement only today, Dilip.';}
+  else{document.getElementById('gMsg').textContent='Moderate readiness 💛';document.getElementById('gSub').textContent='Smart, steady session today, Dilip.';}
+  buildPlan(col);
+}
+
+// ── AI ──
+function saveKey(){const k=document.getElementById('apiIn').value.trim();if(k.startsWith('sk-ant-')){S.key=k;document.getElementById('apiOk').style.display='inline';document.getElementById('apiIn').value='';document.getElementById('novaSt').textContent='● Online · AI Connected ✓';addNova("I'm fully connected now, Dilip! 🎉 Ask me anything or tap 📊 to log today's numbers. Let's go! ✨");}else alert('Valid Claude API key starts with sk-ant-');}
+async function callNova(text){
+  if(!S.key){await wait(600);addNova("Paste your Claude API key above to get personalised coaching, Dilip! Free at <strong>console.anthropic.com</strong> 🔑");return;}
+  const c=document.getElementById('msgs');
+  const td=document.createElement('div');td.className='msg';td.id='nt';
+  td.innerHTML='<div class="mav">N</div><div class="mbody"><div class="bub"><div class="tdots"><span></span><span></span><span></span></div></div></div>';
+  c.appendChild(td);c.scrollTop=c.scrollHeight;
+  try{
+    const msgs=S.hist.slice(-16).filter(m=>m.role==='user'||m.role==='assistant');
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':S.key,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:200,system:SYS,messages:msgs})});
+    const data=await r.json();
+    document.getElementById('nt')?.remove();
+    addNova(data.content?.[0]?.text||'Check your API key, Dilip.');
+  }catch(e){document.getElementById('nt')?.remove();addNova('Connection issue. Try again, Dilip.');}
+}
+function send(){const f=document.getElementById('cf'),t=f.value.trim();if(!t)return;addUser(t);f.value='';f.style.height='auto';callNova(t);}
+function ck(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}
+function ar(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,88)+'px';}
+
+// ── WORKOUT ──
+function buildPlan(col){const p=PLANS[col]||PLANS.yellow;renderEx('SL',p.s);renderEx('CL',p.c);renderEx('FL',p.f);}
+function renderEx(id,exs){const el=document.getElementById(id);if(!el)return;el.innerHTML=exs.map(e=>`<div class="exi"><div><div class="exn">${e.n}</div><div class="exd">${e.d}</div></div><button class="exck" onclick="this.classList.toggle('done')"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></button></div>`).join('');}
+function buildDayTabs(){const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],t=new Date().getDay(),ti=t===0?6:t-1;const el=document.getElementById('dtabs');if(!el)return;el.innerHTML=days.map((d,i)=>`<button class="dtab ${i===ti?'on':''}" onclick="document.querySelectorAll('.dtab').forEach(b=>b.classList.remove('on'));this.classList.add('on')">${d}</button>`).join('');}
+
+// ── PROGRESS ──
+function renderProg(){renderGoals();renderBadges();renderCal();renderMeas();}
+function renderGoals(){
+  const g=DB.get('g'),wlog=DB.get('wlog');
+  const lost=+(g.ws-g.wc).toFixed(1),toGo=+(g.wc-g.wt).toFixed(1);
+  const pct=Math.min(100,Math.round(Math.max(0,lost)/(g.ws-g.wt)*100));
+  const tw=wkCount(wlog);
+  const el=document.getElementById('gcards');if(!el)return;
+  el.innerHTML=`<div class="gc"><div class="gc-lbl">Weight Lost</div><div class="gc-val">${lost>0?lost:0} kg</div><div class="gc-sub">${toGo>0?toGo+'kg to goal':'🎉 Goal reached!'}</div><div class="gc-bar"><div class="gc-fill" style="width:${pct}%"></div></div></div><div class="gc"><div class="gc-lbl">Workouts/Week</div><div class="gc-val">${tw}</div><div class="gc-sub">${tw>=g.wpw?'On track ✅':'Goal: '+g.wpw+'/wk'}</div><div class="gc-bar"><div class="gc-fill" style="width:${Math.min(100,Math.round(tw/g.wpw*100))}%"></div></div></div><div class="gc" style="grid-column:1/-1"><div class="gc-lbl">Daily Steps</div><div class="gc-val">${S.m.stp?Number(S.m.stp).toLocaleString():'—'}</div><div class="gc-sub">Goal: ${g.ss.toLocaleString()}/day</div><div class="gc-bar"><div class="gc-fill" style="width:${S.m.stp?Math.min(100,Math.round(S.m.stp/g.ss*100)):0}%"></div></div></div>`;
+}
+function wkCount(log){let c=0;const n=new Date();for(let i=0;i<7;i++){const d=new Date(n);d.setDate(d.getDate()-i);if(log[d.toISOString().slice(0,10)])c++;}return c;}
+function calcStreak(log){let s=0;const n=new Date();for(let i=0;i<60;i++){const d=new Date(n);d.setDate(d.getDate()-i);if(log[d.toISOString().slice(0,10)])s++;else if(i>0)break;}return s;}
+function renderBadges(){
+  const wlog=DB.get('wlog'),g=DB.get('g');
+  const tot=Object.keys(wlog).length,lost=+(g.ws-g.wc).toFixed(1),str=calcStreak(wlog);
+  const ms=[{ic:'🏅',l:'First Workout',e:tot>=1},{ic:'🔥',l:'7-Day Streak',e:str>=7},{ic:'💪',l:'10 Workouts',e:tot>=10},{ic:'⚖️',l:'1kg Lost',e:lost>=1},{ic:'🌟',l:'30 Workouts',e:tot>=30},{ic:'🎯',l:'5kg Lost',e:lost>=5},{ic:'🏆',l:'Goal Weight',e:g.wc<=g.wt}];
+  const el=document.getElementById('badges');if(!el)return;
+  el.innerHTML=ms.map(m=>`<div class="bchip ${m.e?'earned':''}"><div class="bchip-ic">${m.e?m.ic:'🔒'}</div><div class="bchip-l">${m.l}</div></div>`).join('');
+}
+function drawChart(){
+  const wl=DB.get('wl'),last=wl.slice(-30);
+  const lbls=last.map(x=>{const d=new Date(x.date);return d.getDate()+'/'+(d.getMonth()+1);});
+  const vals=last.map(x=>x.val);
+  const cv=document.getElementById('wChart');if(!cv)return;
+  cv.width=cv.offsetWidth||310;cv.height=155;
+  const ctx=cv.getContext('2d'),w=cv.width,h=155;
+  const p={t:8,r:8,b:24,l:34},cw=w-p.l-p.r,ch=h-p.t-p.b;
+  const mn=Math.min(...vals)-1,mx=Math.max(...vals)+1;
+  const xs=cw/(vals.length-1||1);
+  const pts=vals.map((v,i)=>({x:p.l+i*xs,y:p.t+ch-(v-mn)/(mx-mn)*ch}));
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle='rgba(108,79,207,.12)';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=p.t+(ch/4)*i;ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(w-p.r,y);ctx.stroke();ctx.fillStyle='#8a9e90';ctx.font='10px Nunito';ctx.textAlign='right';ctx.fillText((mx-(mx-mn)/4*i).toFixed(1),p.l-3,y+3);}
+  ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);pts.forEach(pt=>ctx.lineTo(pt.x,pt.y));ctx.lineTo(pts[pts.length-1].x,p.t+ch);ctx.lineTo(pts[0].x,p.t+ch);ctx.closePath();
+  const gr=ctx.createLinearGradient(0,p.t,0,p.t+ch);gr.addColorStop(0,'rgba(108,79,207,.22)');gr.addColorStop(1,'rgba(108,79,207,0)');ctx.fillStyle=gr;ctx.fill();
+  ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);pts.forEach(pt=>ctx.lineTo(pt.x,pt.y));ctx.strokeStyle='#6c4fcf';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.stroke();
+  pts.forEach((pt,i)=>{if(i%5===0||i===pts.length-1){ctx.beginPath();ctx.arc(pt.x,pt.y,4,0,Math.PI*2);ctx.fillStyle='#6c4fcf';ctx.fill();ctx.fillStyle='white';ctx.beginPath();ctx.arc(pt.x,pt.y,2,0,Math.PI*2);ctx.fill();}});
+  ctx.fillStyle='#8a9e90';ctx.font='9px Nunito';ctx.textAlign='center';const step=Math.max(1,Math.floor(lbls.length/6));lbls.forEach((l,i)=>{if(i%step===0)ctx.fillText(l,pts[i].x,h-4);});
+}
+function logW(){const v=+document.getElementById('wlv').value;if(!v||v<30||v>300){alert('Enter a valid weight.');return;}const g=DB.get('g');g.wc=v;DB.set('g',g);const wl=DB.get('wl');const td=new Date().toISOString().slice(0,10);const i=wl.findIndex(x=>x.date===td);if(i>=0)wl[i].val=v;else wl.push({date:td,val:v});DB.set('wl',wl);document.getElementById('wlv').value='';renderGoals();renderBadges();drawChart();}
+function renderCal(){
+  const y=S.calY,m=S.calM;
+  const mns=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const el=document.getElementById('calT');if(el)el.textContent=mns[m]+' '+y;
+  const wlog=DB.get('wlog'),first=new Date(y,m,1),last=new Date(y,m+1,0),sd=(first.getDay()+6)%7,today=new Date().toISOString().slice(0,10);
+  let h='';for(let i=0;i<sd;i++)h+='<div class="cday empty"></div>';
+  for(let d=1;d<=last.getDate();d++){const ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');const it=ds===today;const w=wlog[ds];let c='cday';if(w)c+=' done';else if(new Date(ds)<new Date(today))c+=' rest';if(it)c+=' today';h+=`<div class="${c}">${d}</div>`;}
+  const cg=document.getElementById('calG');if(cg)cg.innerHTML=h;
+}
+function calP(){S.calM--;if(S.calM<0){S.calM=11;S.calY--;}renderCal();}
+function calN(){S.calM++;if(S.calM>11){S.calM=0;S.calY++;}renderCal();}
+function renderDonut(){
+  const eb=DB.get('eb');
+  const its=[{k:'strength',l:'Strength',c:'#6c4fcf'},{k:'cardio',l:'Cardio',c:'#4a7c59'},{k:'flexibility',l:'Flex',c:'#3a6ea8'},{k:'walk',l:'Walk',c:'#6a9e77'},{k:'swim',l:'Swim',c:'#5d9fd4'},{k:'cycle',l:'Cycle',c:'#c8753a'}];
+  const tot=its.reduce((s,i)=>s+(eb[i.k]||0),0)||1;
+  const cv=document.getElementById('dnut');if(!cv)return;
+  const ctx=cv.getContext('2d');ctx.clearRect(0,0,110,110);
+  let st=-Math.PI/2;
+  its.forEach(it=>{const v=eb[it.k]||0,a=(v/tot)*Math.PI*2;ctx.beginPath();ctx.moveTo(55,55);ctx.arc(55,55,50,st,st+a);ctx.closePath();ctx.fillStyle=it.c;ctx.fill();st+=a;});
+  ctx.beginPath();ctx.arc(55,55,27,0,Math.PI*2);ctx.fillStyle='white';ctx.fill();
+  ctx.fillStyle='#18221e';ctx.font='bold 12px Nunito';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(tot,55,52);ctx.font='8px Nunito';ctx.fillStyle='#8a9e90';ctx.fillText('sessions',55,63);
+  const lg=document.getElementById('dnutL');if(!lg)return;
+  lg.innerHTML=its.filter(i=>(eb[i.k]||0)>0).map(it=>`<div class="dl-item"><div class="dl-dot" style="background:${it.c}"></div><div class="dl-name">${it.l}</div><div class="dl-pct">${eb[it.k]||0} · ${Math.round((eb[it.k]||0)/tot*100)}%</div></div>`).join('');
+}
+function renderMeas(){
+  const g=DB.get('g');
+  const fs=[{k:'waist',l:'Waist',u:'cm'},{k:'hip',l:'Hip',u:'cm'},{k:'chest',l:'Chest',u:'cm'}];
+  const el=document.getElementById('measG');if(!el)return;
+  el.innerHTML=fs.map(f=>`<div class="mcard"><div class="ml">${f.l.toUpperCase()}</div><div class="mv">${g[f.k]||'—'}<span style="font-size:11px;color:var(--soft)"> ${f.u}</span></div><div class="medit"><input class="mi" id="mi-${f.k}" type="number" placeholder="${f.u}" step=".5"><button class="msave" onclick="saveMeas('${f.k}')">Save</button></div></div>`).join('');
+}
+function saveMeas(k){const v=+document.getElementById('mi-'+k).value;if(!v)return;const g=DB.get('g');g[k]=v;DB.set('g',g);renderMeas();}
+
+// ── LOG MODAL ──
+function openLog(){S.logType=null;document.querySelectorAll('.etb').forEach(b=>b.classList.remove('sel'));document.getElementById('lNote').value='';document.getElementById('lDur').value='';document.getElementById('logModal').classList.add('open');}
+function closeLog(){document.getElementById('logModal').classList.remove('open');}
+document.getElementById('logModal').addEventListener('click',e=>{if(e.target===document.getElementById('logModal'))closeLog();});
+function selType(btn,type){document.querySelectorAll('.etb').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');S.logType=type;}
+function saveLog(){
+  if(!S.logType){alert('Select a type first.');return;}
+  const note=document.getElementById('lNote').value,dur=+document.getElementById('lDur').value||30;
+  const td=new Date().toISOString().slice(0,10);
+  const wlog=DB.get('wlog');wlog[td]={type:S.logType,dur,note};DB.set('wlog',wlog);
+  const eb=DB.get('eb');eb[S.logType]=(eb[S.logType]||0)+1;DB.set('eb',eb);
+  closeLog();
+  const msg=`Just completed a ${dur}-min ${S.logType} session!${note?' '+note:''}`;
+  goTab('nova');
+  setTimeout(()=>{addUser(msg);callNova(msg);},350);
+}
+
+// ── URL PARAMS ──
+function urlParams(){
+  const p=new URLSearchParams(window.location.search);
+  const steps=p.get('steps'),hrv=p.get('hrv'),rhr=p.get('rhr'),sleep=p.get('sleep');
+  if(!steps&&!hrv&&!rhr&&!sleep)return;
+  const setM=(vId,sId,val)=>{const ve=document.getElementById(vId);const se=document.getElementById(sId);if(ve)ve.textContent=val;if(se){se.textContent='⚡ Auto';se.style.background='var(--sagep)';se.style.color='var(--sage)';}};
+  if(steps){setM('m-stp','s-stp',Number(steps).toLocaleString());S.m.stp=+steps;const f=document.getElementById('d-stp');if(f){f.value=steps;f.classList.add('af');}}
+  if(hrv){setM('m-hrv','s-hrv',Math.round(+hrv));S.m.hrv=+hrv;const f=document.getElementById('d-hrv');if(f){f.value=Math.round(+hrv);f.classList.add('af');}}
+  if(rhr){setM('m-rhr','s-rhr',Math.round(+rhr));S.m.rhr=+rhr;const f=document.getElementById('d-rhr');if(f){f.value=Math.round(+rhr);f.classList.add('af');}}
+  if(sleep){setM('m-slp','s-slp',(+sleep).toFixed(1));S.m.slp=+sleep;const f=document.getElementById('d-slp');if(f){f.value=(+sleep).toFixed(1);f.classList.add('af');}}
+  const b=document.getElementById('scBanner');if(b){b.className='banner ok';b.innerHTML='<div style="font-size:20px;flex-shrink:0">✅</div><div><h4>Apple Health Loaded!</h4><p>Steps, HRV, RHR & sleep auto-filled. Just add 3 WHOOP numbers.</p></div>';}
+  window.history.replaceState({},'',window.location.pathname);
+}
+
+// ── WEATHER ──
+function fetchWeather(){
+  if(!navigator.geolocation){document.getElementById('wDesc').textContent='Location unavailable';return;}
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const{latitude:lat,longitude:lon}=pos.coords;
+    try{
+      const gr=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+      const gd=await gr.json();
+      const city=gd.address?.city||gd.address?.town||gd.address?.suburb||'Your Location';
+      document.getElementById('wLoc').textContent=city;
+      const wr=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,uv_index&wind_speed_unit=kmh`);
+      const wd=await wr.json();const c=wd.current;
+      const temp=Math.round(c.temperature_2m),feels=Math.round(c.apparent_temperature),code=c.weather_code,uv=c.uv_index??'—';
+      document.getElementById('wTemp').textContent=temp+'°C';
+      document.getElementById('wDesc').textContent=wDesc(code);
+      document.getElementById('wFeels').textContent=`Feels like ${feels}°C`;
+      document.getElementById('wIcon').textContent=wIcon(code);
+      document.getElementById('wHum').textContent=c.relative_humidity_2m+'% humidity';
+      document.getElementById('wWnd').textContent=Math.round(c.wind_speed_10m)+' km/h wind';
+      document.getElementById('wUV').textContent='UV '+uvLbl(uv);
+      const crd=document.getElementById('wcrd');
+      if(code>=61)crd.style.background='linear-gradient(135deg,#1a2a4a,#2d4a7a)';
+      else if(code>=45)crd.style.background='linear-gradient(135deg,#2a2a3a,#4a5060)';
+      else if(temp>30)crd.style.background='linear-gradient(135deg,#5c2a00,#a04010)';
+    }catch(e){document.getElementById('wDesc').textContent='Weather unavailable';}
+  },()=>{document.getElementById('wLoc').textContent='Location off';document.getElementById('wDesc').textContent='Enable location for weather';});
+}
+function wDesc(c){if(c===0)return'Clear sky';if(c<=2)return'Partly cloudy';if(c<=3)return'Overcast';if(c<=49)return'Foggy';if(c<=59)return'Drizzle';if(c<=69)return'Rainy';if(c<=79)return'Snowing';return'Thunderstorm';}
+function wIcon(c){if(c===0)return'☀️';if(c<=2)return'⛅';if(c<=3)return'☁️';if(c<=49)return'🌫️';if(c<=59)return'🌦️';if(c<=69)return'🌧️';if(c<=79)return'❄️';return'⛈️';}
+function uvLbl(u){if(u==='—')return'—';if(u<=2)return u+' Low';if(u<=5)return u+' Moderate';if(u<=7)return u+' High';return u+' Very High ⚠️';}
+function cpURL(){navigator.clipboard.writeText('NOVA-v5.html?steps=[StepCount]&hrv=[HRV]&rhr=[RestingHR]&sleep=[SleepHrs]').then(()=>alert('Copied! Paste into Open URL in Shortcuts.'));}
+</script>
+</body>
+</html>
